@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tearooms</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      window.socket = io();
+      window.socket.on('joined', function (data) {
+        console.log('joined', data);
+      });
+
+      window.socket.on('roundstarted', function (data) {
+        console.log('roundstarted', data);
+      });
+
+      window.socket.on('inround', function (data) {
+        console.log('inround', data);
+      });
+
+      window.socket.on('roundcomplete', function (data) {
+        console.log('roundcomplete', data);
+      });
+    </script>
+
+  </body>
+</html>
