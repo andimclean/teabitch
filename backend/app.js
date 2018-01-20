@@ -136,13 +136,15 @@ function removeMemberFromTearoom(tearoom, member) {
 
 app.socket = (io) => {
   io.set('origins', '*:*');
-  
+
   io.on('connection', (socket) => {
     var tearoom = null;
 
     socket.membername = null;
 
     socket.on('join', (data) => {
+      if (tearoom) { removeMemberFromTearoom(tearoom, socket); }
+
       tearoom = findOrCreateTearoom(data.roomname, io.to(data.roomname));
       socket.membername = data.membername;
       addMemberToTearoom(tearoom, socket);
