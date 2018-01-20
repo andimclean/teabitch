@@ -1,0 +1,766 @@
+var _user$project$Main$isChecked = F2(
+	function (person, people) {
+		return A2(
+			_elm_lang$core$List$member,
+			person,
+			A2(
+				_elm_lang$core$List$map,
+				function (_) {
+					return _.name;
+				},
+				people));
+	});
+var _user$project$Main$sansSerif = {
+	ctor: '::',
+	_0: _mdgriffith$style_elements$Style_Font$font('helvetica'),
+	_1: {
+		ctor: '::',
+		_0: _mdgriffith$style_elements$Style_Font$font('arial'),
+		_1: {
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Style_Font$font('sans-serif'),
+			_1: {ctor: '[]'}
+		}
+	}
+};
+var _user$project$Main$canJoin = function (model) {
+	return (_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$String$length(model.name),
+		0) > 0) && (_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$String$length(model.room),
+		0) > 0);
+};
+var _user$project$Main$socketUrl = 'ws://http://192.168.86.34:3000/';
+var _user$project$Main$chooseOne = F3(
+	function (test, $true, $false) {
+		return test ? $true : $false;
+	});
+var _user$project$Main$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {makingTea: a, peopleInRoom: b, peopleInRound: c, me: d, name: e, room: f, state: g};
+	});
+var _user$project$Main$Person = function (a) {
+	return {name: a};
+};
+var _user$project$Main$BitchChoosen = {ctor: 'BitchChoosen'};
+var _user$project$Main$CallForTea = {ctor: 'CallForTea'};
+var _user$project$Main$Joined = {ctor: 'Joined'};
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'NoOp':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'NoOp1':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'ChangeName':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{name: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'ChangeRoom':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{room: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'JoinRoom':
+				var cmd = _user$project$Main$canJoin(model) ? _elm_lang$core$Platform_Cmd$none : _elm_lang$core$Platform_Cmd$none;
+				var me = {name: model.name};
+				var newMod = _user$project$Main$canJoin(model) ? _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						me: _elm_lang$core$Maybe$Just(me),
+						state: _user$project$Main$Joined,
+						peopleInRoom: {
+							ctor: '::',
+							_0: me,
+							_1: {ctor: '[]'}
+						}
+					}) : model;
+				return {ctor: '_Tuple2', _0: newMod, _1: cmd};
+			case 'WaterMe':
+				var newInRound = function () {
+					var _p1 = model.me;
+					if (_p1.ctor === 'Nothing') {
+						return model.peopleInRound;
+					} else {
+						return {ctor: '::', _0: _p1._0, _1: model.peopleInRound};
+					}
+				}();
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{peopleInRound: newInRound}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _user$project$Main$PreJoined = {ctor: 'PreJoined'};
+var _user$project$Main$init = {
+	ctor: '_Tuple2',
+	_0: A7(
+		_user$project$Main$Model,
+		_elm_lang$core$Maybe$Nothing,
+		{ctor: '[]'},
+		{ctor: '[]'},
+		_elm_lang$core$Maybe$Nothing,
+		'',
+		'',
+		_user$project$Main$PreJoined),
+	_1: _elm_lang$core$Platform_Cmd$none
+};
+var _user$project$Main$ProcessSocket = function (a) {
+	return {ctor: 'ProcessSocket', _0: a};
+};
+var _user$project$Main$subscriptions = function (model) {
+	return A2(_elm_lang$websocket$WebSocket$listen, _user$project$Main$socketUrl, _user$project$Main$ProcessSocket);
+};
+var _user$project$Main$WaterMe = {ctor: 'WaterMe'};
+var _user$project$Main$JoinRoom = {ctor: 'JoinRoom'};
+var _user$project$Main$ChangeRoom = function (a) {
+	return {ctor: 'ChangeRoom', _0: a};
+};
+var _user$project$Main$ChangeName = function (a) {
+	return {ctor: 'ChangeName', _0: a};
+};
+var _user$project$Main$NoOp1 = function (a) {
+	return {ctor: 'NoOp1', _0: a};
+};
+var _user$project$Main$NoOp = {ctor: 'NoOp'};
+var _user$project$Main$Button = {ctor: 'Button'};
+var _user$project$Main$DisabledButton = {ctor: 'DisabledButton'};
+var _user$project$Main$Field = {ctor: 'Field'};
+var _user$project$Main$FieldDark = {ctor: 'FieldDark'};
+var _user$project$Main$PreJoinedStyle = {ctor: 'PreJoinedStyle'};
+var _user$project$Main$NavOption = {ctor: 'NavOption'};
+var _user$project$Main$Main = {ctor: 'Main'};
+var _user$project$Main$None = {ctor: 'None'};
+var _user$project$Main$stylesheet = _mdgriffith$style_elements$Style$styleSheet(
+	{
+		ctor: '::',
+		_0: A2(
+			_mdgriffith$style_elements$Style$style,
+			_user$project$Main$None,
+			{ctor: '[]'}),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_mdgriffith$style_elements$Style$style,
+				_user$project$Main$Main,
+				{
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Style_Border$all(1),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Style_Color$text(_elm_lang$core$Color$darkCharcoal),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Style_Color$background(_elm_lang$core$Color$white),
+							_1: {
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Style_Color$border(_elm_lang$core$Color$lightGrey),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Style_Font$typeface(_user$project$Main$sansSerif),
+									_1: {
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Style_Font$size(16),
+										_1: {
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Style_Font$lineHeight(1.3),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}
+						}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_mdgriffith$style_elements$Style$style,
+					_user$project$Main$NavOption,
+					{
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Style_Font$size(16),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Style_Font$typeface(_user$project$Main$sansSerif),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_mdgriffith$style_elements$Style$style,
+						_user$project$Main$PreJoinedStyle,
+						{
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Style_Border$all(1),
+							_1: {
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Style_Color$text(_elm_lang$core$Color$darkCharcoal),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Style_Color$background(_elm_lang$core$Color$lightBlue),
+									_1: {
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Style_Color$border(_elm_lang$core$Color$lightGrey),
+										_1: {
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Style_Font$typeface(_user$project$Main$sansSerif),
+											_1: {
+												ctor: '::',
+												_0: _mdgriffith$style_elements$Style_Font$size(16),
+												_1: {
+													ctor: '::',
+													_0: _mdgriffith$style_elements$Style_Font$lineHeight(1.3),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
+								}
+							}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_mdgriffith$style_elements$Style$style,
+							_user$project$Main$Field,
+							{
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Style_Border$rounded(5),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Style_Border$all(1),
+									_1: {
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Style_Border$solid,
+										_1: {
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Style_Color$border(_elm_lang$core$Color$lightGrey),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_mdgriffith$style_elements$Style$style,
+								_user$project$Main$FieldDark,
+								{
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Style_Border$rounded(5),
+									_1: {
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Style_Border$all(1),
+										_1: {
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Style_Border$solid,
+											_1: {
+												ctor: '::',
+												_0: _mdgriffith$style_elements$Style_Color$border(_elm_lang$core$Color$darkGray),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_mdgriffith$style_elements$Style$style,
+									_user$project$Main$DisabledButton,
+									{
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Style_Border$rounded(5),
+										_1: {
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Style_Border$all(1),
+											_1: {
+												ctor: '::',
+												_0: _mdgriffith$style_elements$Style_Border$solid,
+												_1: {
+													ctor: '::',
+													_0: _mdgriffith$style_elements$Style_Color$border(_elm_lang$core$Color$lightGrey),
+													_1: {
+														ctor: '::',
+														_0: _mdgriffith$style_elements$Style_Color$background(_elm_lang$core$Color$lightGrey),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_mdgriffith$style_elements$Style$style,
+										_user$project$Main$Button,
+										{
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Style_Border$rounded(5),
+											_1: {
+												ctor: '::',
+												_0: _mdgriffith$style_elements$Style_Border$all(1),
+												_1: {
+													ctor: '::',
+													_0: _mdgriffith$style_elements$Style_Border$solid,
+													_1: {
+														ctor: '::',
+														_0: _mdgriffith$style_elements$Style_Color$border(_elm_lang$core$Color$lightBlue),
+														_1: {
+															ctor: '::',
+															_0: _mdgriffith$style_elements$Style_Color$background(_elm_lang$core$Color$lightBlue),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _user$project$Main$navigation = A3(
+	_mdgriffith$style_elements$Element$row,
+	_user$project$Main$None,
+	{
+		ctor: '::',
+		_0: _mdgriffith$style_elements$Element_Attributes$spread,
+		_1: {
+			ctor: '::',
+			_0: A2(_mdgriffith$style_elements$Element_Attributes$paddingXY, 80, 20),
+			_1: {ctor: '[]'}
+		}
+	},
+	{
+		ctor: '::',
+		_0: A3(
+			_mdgriffith$style_elements$Element$image,
+			_user$project$Main$None,
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Element_Attributes$width(
+					_mdgriffith$style_elements$Element_Attributes$px(40)),
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element_Attributes$height(
+						_mdgriffith$style_elements$Element_Attributes$px(40)),
+					_1: {ctor: '[]'}
+				}
+			},
+			{src: 'img/logo.png', caption: ''}),
+		_1: {
+			ctor: '::',
+			_0: A3(
+				_mdgriffith$style_elements$Element$row,
+				_user$project$Main$None,
+				{
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element_Attributes$spacing(20),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Element_Attributes$alignBottom,
+						_1: {ctor: '[]'}
+					}
+				},
+				{
+					ctor: '::',
+					_0: A3(
+						_mdgriffith$style_elements$Element$el,
+						_user$project$Main$NavOption,
+						{ctor: '[]'},
+						_mdgriffith$style_elements$Element$text('share')),
+					_1: {
+						ctor: '::',
+						_0: A3(
+							_mdgriffith$style_elements$Element$el,
+							_user$project$Main$NavOption,
+							{ctor: '[]'},
+							_mdgriffith$style_elements$Element$text('about')),
+						_1: {
+							ctor: '::',
+							_0: A3(
+								_mdgriffith$style_elements$Element$el,
+								_user$project$Main$NavOption,
+								{ctor: '[]'},
+								_mdgriffith$style_elements$Element$text('user profile')),
+							_1: {ctor: '[]'}
+						}
+					}
+				}),
+			_1: {ctor: '[]'}
+		}
+	});
+var _user$project$Main$callToAction = function (model) {
+	return A3(
+		_mdgriffith$style_elements$Element$button,
+		A3(
+			_user$project$Main$chooseOne,
+			A2(_user$project$Main$isChecked, model.name, model.peopleInRound),
+			_user$project$Main$DisabledButton,
+			_user$project$Main$Button),
+		{
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Element_Events$onClick(_user$project$Main$WaterMe),
+			_1: {
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Element_Attributes$height(
+					_mdgriffith$style_elements$Element_Attributes$percent(100)),
+				_1: {ctor: '[]'}
+			}
+		},
+		A3(
+			_mdgriffith$style_elements$Element$el,
+			_user$project$Main$None,
+			{ctor: '[]'},
+			_mdgriffith$style_elements$Element$text('Water me')));
+};
+var _user$project$Main$showPerson = F2(
+	function (people, person) {
+		return A3(
+			_mdgriffith$style_elements$Element$row,
+			_user$project$Main$None,
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Element_Attributes$spacing(20),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A3(
+					_mdgriffith$style_elements$Element$el,
+					_user$project$Main$FieldDark,
+					{
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Element_Attributes$width(
+							_mdgriffith$style_elements$Element_Attributes$px(20)),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$height(
+								_mdgriffith$style_elements$Element_Attributes$px(20)),
+							_1: {ctor: '[]'}
+						}
+					},
+					_mdgriffith$style_elements$Element$text(
+						A3(
+							_user$project$Main$chooseOne,
+							A2(_user$project$Main$isChecked, person.name, people),
+							'x',
+							''))),
+				_1: {
+					ctor: '::',
+					_0: A3(
+						_mdgriffith$style_elements$Element$el,
+						_user$project$Main$None,
+						{ctor: '[]'},
+						_mdgriffith$style_elements$Element$text(
+							function (_) {
+								return _.name;
+							}(person))),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$Main$showPeople = function (model) {
+	return A3(
+		_mdgriffith$style_elements$Element$column,
+		_user$project$Main$None,
+		{ctor: '[]'},
+		A2(
+			_elm_lang$core$List$map,
+			_user$project$Main$showPerson(model.peopleInRound),
+			model.peopleInRoom));
+};
+var _user$project$Main$waterMe = function (model) {
+	return {
+		ctor: '::',
+		_0: A3(
+			_mdgriffith$style_elements$Element$grid,
+			_user$project$Main$None,
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Element_Attributes$spacing(20),
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element_Attributes$height(
+						_mdgriffith$style_elements$Element_Attributes$percent(100)),
+					_1: {ctor: '[]'}
+				}
+			},
+			{
+				columns: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element_Attributes$percent(20),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Element_Attributes$fill,
+						_1: {ctor: '[]'}
+					}
+				},
+				rows: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element_Attributes$px(40),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Element_Attributes$fill,
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$px(40),
+							_1: {ctor: '[]'}
+						}
+					}
+				},
+				cells: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element$cell(
+						{
+							start: {ctor: '_Tuple2', _0: 0, _1: 0},
+							width: 2,
+							height: 1,
+							content: A3(
+								_mdgriffith$style_elements$Element$el,
+								_user$project$Main$None,
+								{ctor: '[]'},
+								_mdgriffith$style_elements$Element$text(
+									A2(_elm_lang$core$Basics_ops['++'], 'Room: ', model.room)))
+						}),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Element$cell(
+							{
+								start: {ctor: '_Tuple2', _0: 1, _1: 1},
+								width: 1,
+								height: 1,
+								content: _user$project$Main$callToAction(model)
+							}),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element$cell(
+								{
+									start: {ctor: '_Tuple2', _0: 0, _1: 1},
+									width: 1,
+									height: 1,
+									content: _user$project$Main$showPeople(model)
+								}),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}),
+		_1: {ctor: '[]'}
+	};
+};
+var _user$project$Main$mainView = function (model) {
+	var _p2 = model.state;
+	switch (_p2.ctor) {
+		case 'PreJoined':
+			return {
+				ctor: '::',
+				_0: A3(
+					_mdgriffith$style_elements$Element$el,
+					_user$project$Main$None,
+					{
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Element_Attributes$center,
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$width(
+								_mdgriffith$style_elements$Element_Attributes$px(400)),
+							_1: {ctor: '[]'}
+						}
+					},
+					A3(
+						_mdgriffith$style_elements$Element$column,
+						_user$project$Main$None,
+						{
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$spacing(20),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A3(
+								_mdgriffith$style_elements$Element_Input$text,
+								_user$project$Main$Field,
+								{
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Element_Attributes$padding(10),
+									_1: {ctor: '[]'}
+								},
+								{
+									onChange: _user$project$Main$ChangeName,
+									value: model.name,
+									label: _mdgriffith$style_elements$Element_Input$placeholder(
+										{
+											label: _mdgriffith$style_elements$Element_Input$labelAbove(
+												A3(
+													_mdgriffith$style_elements$Element$el,
+													_user$project$Main$None,
+													{
+														ctor: '::',
+														_0: _mdgriffith$style_elements$Element_Attributes$verticalCenter,
+														_1: {ctor: '[]'}
+													},
+													_mdgriffith$style_elements$Element$text('Name'))),
+											text: 'Name'
+										}),
+									options: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A3(
+									_mdgriffith$style_elements$Element_Input$text,
+									_user$project$Main$Field,
+									{
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Element_Attributes$padding(10),
+										_1: {ctor: '[]'}
+									},
+									{
+										onChange: _user$project$Main$ChangeRoom,
+										value: model.room,
+										label: _mdgriffith$style_elements$Element_Input$placeholder(
+											{
+												label: _mdgriffith$style_elements$Element_Input$labelAbove(
+													A3(
+														_mdgriffith$style_elements$Element$el,
+														_user$project$Main$None,
+														{
+															ctor: '::',
+															_0: _mdgriffith$style_elements$Element_Attributes$verticalCenter,
+															_1: {ctor: '[]'}
+														},
+														_mdgriffith$style_elements$Element$text('Room'))),
+												text: 'Room'
+											}),
+										options: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A3(
+										_mdgriffith$style_elements$Element$button,
+										A3(
+											_user$project$Main$chooseOne,
+											_user$project$Main$canJoin(model),
+											_user$project$Main$Button,
+											_user$project$Main$DisabledButton),
+										{
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Element_Attributes$padding(10),
+											_1: {
+												ctor: '::',
+												_0: _mdgriffith$style_elements$Element_Events$onClick(
+													A3(
+														_user$project$Main$chooseOne,
+														_user$project$Main$canJoin(model),
+														_user$project$Main$JoinRoom,
+														_user$project$Main$NoOp)),
+												_1: {ctor: '[]'}
+											}
+										},
+										A3(
+											_mdgriffith$style_elements$Element$el,
+											_user$project$Main$None,
+											{ctor: '[]'},
+											_mdgriffith$style_elements$Element$text('Join'))),
+									_1: {ctor: '[]'}
+								}
+							}
+						})),
+				_1: {ctor: '[]'}
+			};
+		case 'Joined':
+			return _user$project$Main$waterMe(model);
+		case 'CallForTea':
+			return _user$project$Main$waterMe(model);
+		default:
+			return {ctor: '[]'};
+	}
+};
+var _user$project$Main$view = function (model) {
+	return A2(
+		_mdgriffith$style_elements$Element$layout,
+		_user$project$Main$stylesheet,
+		A3(
+			_mdgriffith$style_elements$Element$column,
+			_user$project$Main$None,
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Element_Attributes$height(
+					_mdgriffith$style_elements$Element_Attributes$percent(100)),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: _user$project$Main$navigation,
+				_1: {
+					ctor: '::',
+					_0: A3(
+						_mdgriffith$style_elements$Element$el,
+						_user$project$Main$None,
+						{
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$center,
+							_1: {
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Element_Attributes$width(
+									_mdgriffith$style_elements$Element_Attributes$px(800)),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Element_Attributes$height(
+										_mdgriffith$style_elements$Element_Attributes$percent(100)),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						A3(
+							_mdgriffith$style_elements$Element$column,
+							_user$project$Main$Main,
+							{
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Element_Attributes$spacing(30),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Element_Attributes$paddingTop(50),
+									_1: {
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Element_Attributes$paddingBottom(50),
+										_1: {
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Element_Attributes$height(
+												_mdgriffith$style_elements$Element_Attributes$percent(100)),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							},
+							_elm_lang$core$List$concat(
+								{
+									ctor: '::',
+									_0: _user$project$Main$mainView(model),
+									_1: {ctor: '[]'}
+								}))),
+					_1: {ctor: '[]'}
+				}
+			}));
+};
+var _user$project$Main$main = _elm_lang$html$Html$program(
+	{init: _user$project$Main$init, update: _user$project$Main$update, view: _user$project$Main$view, subscriptions: _user$project$Main$subscriptions})();
