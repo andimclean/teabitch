@@ -31,7 +31,6 @@ app.use(sassMiddleware({
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -53,16 +52,16 @@ app.use(function(err, req, res, next) {
 
 var tearooms = {};
 getid = () => `${(Math.random() * 100000000)}`;
-mapmember = (m) => ({id: m.teaid, name: m.membername});
+mapmember = (m) => (m ? {id: m.teaid, name: m.membername} : null);
 
-function findOrCreateTearoom(name, broadcast) {
+function findOrCreateTearoom(name, io) {
   if (!tearooms[name]) {
     tearooms[name] = {
       name: name,
       members: new Set(),
       wantingtea: new Set(),
       roundendsat: null,
-      broadcast: broadcast
+      broadcast: () => io.to(name)
     };
   }
 
@@ -77,19 +76,25 @@ function addMemberToTearoom(tearoom, socket) {
   tearoom.members.add(socket);
   socket.join(tearoom.name);
 
-  tearoom.broadcast.emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
+  socket.emit('yourid', mapmember(socket));
+  tearoom.broadcast().emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
+
+  if (tearoom.roundendsat) {
+    tearoom.broadcast().emit('roundstarted', {timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+  }
 }
 
 function startTearoomRound(tearoom) {
   if (tearoom && !tearoom.roundendsat) {
-    let endtime = moment().add(0.5, 'm');
+    let endtime = moment().add(0.25, 'm');
 
     tearoom.roundendsat = {
       timer: setTimeout(getEndRoundHandler(tearoom), getMillisecondsToTime(endtime)),
       endtime: endtime
     };
 
-    tearoom.broadcast.emit('roundstarted', {timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('roundstarted', {timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
   }
 }
 
@@ -110,7 +115,7 @@ function getEndRoundHandler(tearoom) {
     var teafor = [...tearoom.wantingtea].filter(m => m != teamaker).map(mapmember);
 
     // tell the room who's making tea
-    tearoom.broadcast.emit('roundcomplete', {teamaker: mapmember(teamaker), teafor: teafor});
+    tearoom.broadcast().emit('roundcomplete', {teamaker: mapmember(teamaker), teafor: teafor});
 
     tearoom.roundendsat = null;
     tearoom.wantingtea.clear();
@@ -121,16 +126,21 @@ function addToTearound(tearoom, member) {
   if (tearoom && tearoom.roundendsat && tearoom.members.has(member)) {
     tearoom.wantingtea.add(member);
 
-    tearoom.broadcast.emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+  }
+}
+
+function removeFromTeaRound(tearoom, member) {
+  if (tearoom && member && tearoom.wantingtea.has(member)) {
+    tearoom.wantingtea.delete(member);
+    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
   }
 }
 
 function removeMemberFromTearoom(tearoom, member) {
   if (tearoom && member) {
     tearoom.members.delete(member);
-    tearoom.wantingtea.delete(member);
-
-    tearoom.broadcast.emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
+    tearoom.broadcast().emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
   }
 }
 
@@ -145,7 +155,7 @@ app.socket = (io) => {
     socket.on('join', (data) => {
       if (tearoom) { removeMemberFromTearoom(tearoom, socket); }
 
-      tearoom = findOrCreateTearoom(data.roomname, io.to(data.roomname));
+      tearoom = findOrCreateTearoom(data.roomname, io);
       socket.membername = data.membername;
       addMemberToTearoom(tearoom, socket);
     });
@@ -156,7 +166,12 @@ app.socket = (io) => {
       addToTearound(tearoom, socket);
     });
 
+    socket.on('notea', (data) => {
+      removeFromTeaRound(tearoom, socket);
+    });
+
     socket.on('disconnect', () => {
+      removeFromTeaRound(tearoom, socket);
       removeMemberFromTearoom(tearoom, socket);
     });
 
