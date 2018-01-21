@@ -48,13 +48,21 @@ app.ports.wantTea.subscribe((_) => {
 app.ports.notea.subscribe((_) => {
     current.emit("notea")
 })
-app.ports.notify.subscribe((message) => {
-    if ("Notification" in window) {        
+app.ports.notify.subscribe((info) => {
+    if ("Notification" in window) {
         if (askNotification && Notification.permission != "granted") {
             Notification.requestPermission((_permission) => {})
             askNotification = false;
         }
-        new Notification(message)
+        var notification = new Notification(info.message, {
+            icon: "img/logo.png"
+        })
+        if (info.onclick) {
+            notification.onclick = function () {
+                app.ports.notificatinClicked.send(null)
+                notification.close()
+            }
+        }
     }
 })
 

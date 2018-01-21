@@ -27,7 +27,7 @@ port console: String -> Cmd msg
 port join : {roomname: String, membername: String} -> Cmd msg
 port wantTea : () ->Cmd msg
 port notea: () -> Cmd msg
-port notify: String -> Cmd msg
+port notify: {message: String , onclick: Bool} -> Cmd msg
 
 port connect : ( () -> msg) -> Sub msg
 port disconnect : ( () -> msg) -> Sub msg
@@ -36,7 +36,7 @@ port roundstarted: ( RoundStartedArgs -> msg ) -> Sub msg
 port wantingtea: (WantingTeaArgs -> msg) -> Sub msg
 port yourid: (Person -> msg) -> Sub msg
 port roundcomplete: (RoundCompleteArgs -> msg) -> Sub msg
-
+port notificatinClicked: ( () -> msg) -> Sub msg
 
 -- MODEL
 
@@ -105,6 +105,7 @@ type Msg
     | JoinedRoom People
     | WaterMe
     | NoThanks
+    | NotificatinClicked ()
     | ProcessSocket String
     | RoundStarted RoundStartedArgs
     | WantingTea WantingTeaArgs
@@ -170,7 +171,7 @@ update msg model =
         RoundStarted info -> 
           let
               cmd = 
-                notify "A new round of tea has started."
+                notify {message = "A new round of tea has started.", onclick = True}
           in              
             ({model | timeLeft = info.timeleft , inRound = False , peopleInRound = [] }, cmd)
         WantingTea info ->
@@ -182,7 +183,7 @@ update msg model =
         YourId person ->
             ( { model | me = Just person}, Cmd.none )
         RoundComplete info -> 
-            ( { model | timeLeft = 0, inRound = False, teaFor = info.teafor , peopleInRound = [], teamaker = info.teamaker}, notify ("Tea made by : " ++ (getName info.teamaker)) )
+            ( { model | timeLeft = 0, inRound = False, teaFor = info.teafor , peopleInRound = [], teamaker = info.teamaker}, notify {message = ("Tea made by : " ++ (getName info.teamaker))  , onclick = False})
         Tick _ ->
           let
             newModel =
@@ -192,6 +193,8 @@ update msg model =
                 model
           in
             (newModel, Cmd.none)
+        NotificatinClicked _ ->
+          ( model, wantTea () )
 
 -- VIEW
 
@@ -499,6 +502,7 @@ subscriptions model =
     , roundcomplete RoundComplete
     , connect Connected
     , disconnect DisConnect
+    , notificatinClicked NotificatinClicked
     , every second Tick
     ]
 
