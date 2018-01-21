@@ -367,9 +367,10 @@ mainView model =
         Joined -> waterMe model
         BitchChoosen -> []
 
+showTimer : Int -> Element Styles variation msg
 showTimer timeleft =
   if timeleft > 0 then
-    el None [] (text ("Time Left : " ++ (toString (floor(timeleft / 1000))) ++ " seconds"))
+    el None [] (text ("Time Left : " ++ (toString (floor((toFloat timeleft) / 1000))) ++ " seconds"))
   else
     empty
       
