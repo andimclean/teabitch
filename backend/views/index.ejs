@@ -12,6 +12,10 @@
         console.log('joined', data);
       });
 
+      window.socket.on('yourid', function (data) {
+        console.log('yourid', data);
+      });
+
       window.socket.on('roundstarted', function (data) {
         console.log('roundstarted', data);
       });

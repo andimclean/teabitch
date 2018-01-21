@@ -31,7 +31,6 @@ app.use(sassMiddleware({
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -53,7 +52,7 @@ app.use(function(err, req, res, next) {
 
 var tearooms = {};
 getid = () => `${(Math.random() * 100000000)}`;
-mapmember = (m) => ({id: m.teaid, name: m.membername});
+mapmember = (m) => (m ? {id: m.teaid, name: m.membername} : null);
 
 function findOrCreateTearoom(name, broadcast) {
   if (!tearooms[name]) {
@@ -77,6 +76,7 @@ function addMemberToTearoom(tearoom, socket) {
   tearoom.members.add(socket);
   socket.join(tearoom.name);
 
+  socket.emit('yourid', mapmember(socket));
   tearoom.broadcast.emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
 }
 
