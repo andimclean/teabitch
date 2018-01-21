@@ -1,4 +1,4 @@
 backend/node_modules
-gui/node_modules
-gui/elm-stuff
-gui/dist
+gui-elm/node_modules
+gui-elm/elm-stuff
+gui-elm/dist
