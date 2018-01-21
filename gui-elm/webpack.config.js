@@ -118,6 +118,7 @@ if (TARGET_ENV === 'development') {
 
     devServer: {
       port: PORT,
+      host: "0.0.0.0",
       inline: true,
       historyApiFallback: true,
       stats: {
