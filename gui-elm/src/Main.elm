@@ -309,7 +309,7 @@ navigation : Element Styles variation msg
 navigation = 
     row None
         [  spread, paddingXY 80 20]
-        [  image None [width (px 40), height (px 40)] {src = "img/logo.png", caption = ""}
+        [  image None [width (px 60), height (px 60)] {src = "img/logo.png", caption = ""}
         ,  row None 
             [ spacing 20, alignBottom]
             [ el NavOption [] (text "share")
