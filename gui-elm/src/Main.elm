@@ -6,11 +6,14 @@ import Element.Attributes exposing (..)
 import Element.Input as Input
 import Element.Events exposing (..)
 import Html
+import Navigation exposing (..)
 import Style exposing (..)
 import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
 import Time exposing (..)
+import UrlParser exposing (..)
+
 -- Helpers
 
 chooseOne: Bool -> a -> a -> a
@@ -20,6 +23,28 @@ chooseOne test true false =
     else
       false
 
+-- URL Parsing
+type Route
+  = HomeRoute
+  | RoomRoute String
+  | MemberRoute String String 
+
+matchers : Parser (Route -> a) a
+matchers =
+    oneOf
+        [ UrlParser.map HomeRoute UrlParser.top
+        , UrlParser.map RoomRoute (string)
+        , UrlParser.map MemberRoute (string </> string)
+        ]
+
+parseLocation : Location -> Route
+parseLocation location =
+    case (parsePath matchers location) of
+        Just route ->
+            route
+
+        Nothing ->
+            HomeRoute    
 
 -- Ports
 port console: String -> Cmd msg
@@ -84,9 +109,31 @@ type alias Person =
     , name: String
     }
 
-init : ( Model, Cmd Msg )
-init =
-    ( Model Nothing [] [] Nothing "" "" NotConnected 0 False [] Nothing
+
+getRoomName: Route -> String
+getRoomName route = 
+  case route of
+    HomeRoute -> ""
+    RoomRoute room -> room
+    MemberRoute room name -> room
+      
+getMemberName: Route -> String
+getMemberName route = 
+  case route  of
+    HomeRoute -> ""
+    RoomRoute room -> ""
+    MemberRoute room name -> name
+      
+
+init :Navigation.Location -> ( Model, Cmd Msg )
+init location =
+    let
+      route = parseLocation location
+      room = getRoomName route
+      name = getMemberName route
+    in
+        
+    ( Model Nothing [] [] Nothing name room NotConnected 0 False [] Nothing
     , Cmd.none
     )
 
@@ -112,6 +159,7 @@ type Msg
     | YourId Person
     | RoundComplete RoundCompleteArgs
     | Tick Time
+    | OnLocationChange Navigation.Location
 
 canJoin : { a | name : String, room : String } -> Bool
 canJoin model = 
@@ -124,6 +172,20 @@ update msg model =
             ( model, Cmd.none )
         NoOp1 val ->
             ( model, Cmd.none )
+        OnLocationChange location ->
+          let
+            route = parseLocation location
+            room = getRoomName route
+            name = getMemberName route
+            me = {name = name, id = ""}
+            newModel = {model | room = room , name = name, me = Just me}
+            cmd = 
+            if canJoin newModel then
+              join {roomname = model.room, membername = model.name}
+             else 
+               Cmd.none
+         in
+            ( newModel , cmd )
         ChangeName name -> 
             ( { model | name = name} , Cmd.none)
         ChangeRoom room ->
@@ -150,7 +212,7 @@ update msg model =
             me = {name = model.name, id = ""}
             cmd = 
               if canJoin model then
-                join {roomname = model.room, membername = model.name}
+                Navigation.newUrl <| "/"++ model.room ++ "/"++ model.name
               else 
                 Cmd.none
             newMod = 
@@ -509,9 +571,9 @@ subscriptions model =
 
 main : Program Never Model Msg
 main =
-    Html.program
+    Navigation.program OnLocationChange
         { init = init
-        , update = update
         , view = view
+        , update = update
         , subscriptions = subscriptions
         }

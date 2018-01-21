@@ -22,6 +22,7 @@ const common = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
+    publicPath :'/'
   },
 
   module: {
