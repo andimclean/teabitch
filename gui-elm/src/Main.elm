@@ -14,6 +14,10 @@ import Style.Font as Font
 import Time exposing (..)
 import UrlParser exposing (..)
 
+-- Configuration
+websiteAddress: String
+websiteAddress = "http://192.168.86.27:3000/"
+
 -- Helpers
 
 chooseOne: Bool -> a -> a -> a
@@ -99,7 +103,6 @@ type State
     = NotConnected
     | PreJoined
     | Joined
-    | BitchChoosen
 
 type alias People = 
     List Person
@@ -178,7 +181,7 @@ update msg model =
             room = getRoomName route
             name = getMemberName route
             me = {name = name, id = ""}
-            newModel = {model | room = room , name = name, me = Just me}
+            newModel = {model | room = room , name = name, me = Just me }
             cmd = 
             if canJoin newModel then
               join {roomname = model.room, membername = model.name}
@@ -360,25 +363,34 @@ view model =
     Element.layout stylesheet <|
         column None
             [ height (percent 100) ]
-            [ navigation
+            [ navigation model
             , el None [ center, width (px 800), height (percent 100)] <|
               column Main 
                 [spacing 30, paddingTop 50, paddingBottom 50, height (percent 100)]
                 ( List.concat [mainView model])
             ]
 
-navigation : Element Styles variation msg
-navigation = 
+navigation : Model -> Element Styles variation msg
+navigation model = 
     row None
         [  spread, paddingXY 80 20]
-        [  image None [width (px 60), height (px 60)] {src = "img/logo.png", caption = ""}
+        [  image None [width (px 60), height (px 60)] {src = "/img/logo.png", caption = ""}
         ,  row None 
             [ spacing 20, alignBottom]
-            [ el NavOption [] (text "share")
-            , el NavOption [] (text "about")
-            , el NavOption [] (text "user profile")
+            [ (showShare model)
             ]
         ]
+
+showShare : Model -> Element Styles variation msg
+showShare model =
+  case model.state of
+    Joined -> 
+      button None 
+        [Element.Attributes.class "copy-button" , Element.Attributes.attribute "data-clipboard-text" (toString (websiteAddress ++ model.room))]
+        (el NavOption [] (text "Share Room"))
+    _ -> empty
+        
+  
 
 mainView : Model-> List (Element Styles variation Msg)
 mainView model =
@@ -427,7 +439,6 @@ mainView model =
                ]
             ]
         Joined -> waterMe model
-        BitchChoosen -> []
 
 showTimer : Int -> Element Styles variation msg
 showTimer timeleft =
