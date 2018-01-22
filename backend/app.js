@@ -30,6 +30,13 @@ app.use(sassMiddleware({
 }));
 app.use(express.static(path.join(__dirname, '..', 'gui-elm', 'dist')));
 
+app.get('/:room', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+});
+
+app.get('/:room/:user', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -86,7 +93,7 @@ function addMemberToTearoom(tearoom, socket) {
 
 function startTearoomRound(tearoom) {
   if (tearoom && !tearoom.roundendsat) {
-    let endtime = moment().add(0.25, 'm');
+    let endtime = moment().add(2, 'm');
 
     tearoom.roundendsat = {
       timer: setTimeout(getEndRoundHandler(tearoom), getMillisecondsToTime(endtime)),

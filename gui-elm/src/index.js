@@ -7,8 +7,6 @@ const Elm = require('./Main.elm')
 
 const app = Elm.Main.embed(document.getElementById('main'))
 
-const socketUrl = "http://192.168.86.27:3010/"
-
 var askNotification = true
 
 function getPosition(el) {
@@ -61,7 +59,7 @@ clipboard.on('success', (e) => {
 
 })
 
-const current = socket(socketUrl)
+const current = socket()
 current.on('connect', () => {
     app.ports.connect.send(null)
 })
