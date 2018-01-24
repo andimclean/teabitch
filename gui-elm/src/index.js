@@ -36,29 +36,35 @@ function getPosition(el) {
 }
 
 var clipboard = new Clipboard('.copy-button', {
-    text: function(trigger) {
+    text: function (trigger) {
         var s = trigger.getAttribute("data-clipboard-text");
-        var t = s.substring(1,s.length - 1)        
+        var t = s.substring(1, s.length - 1)
         return t;
     }
 })
 clipboard.on('success', (e) => {
-    var element = e.trigger
-    var elementPos = getPosition(element)
-    var tooltip = document.createElement("div")
-    tooltip.classList = "tooltip"
-    tooltip.innerText = "Copied to clipboard";
-    tooltip.style.position = "fixed"
-    tooltip.style.left = (elementPos.x + 10 ) + 'px'
-    tooltip.style.top = (elementPos.y + 10 ) + 'px'
-    document.body.appendChild(tooltip);
+    try {
 
-    setTimeout(() => {
-        tooltip.remove()
-    } , 4000)
+        var element = e.trigger
+        var elementPos = getPosition(element)
+        var tooltip = document.createElement("div")
+        tooltip.classList = "tooltip"
+        tooltip.innerText = "Copied to clipboard";
+        tooltip.style.position = "fixed"
+        tooltip.style.left = (elementPos.x + 10) + 'px'
+        tooltip.style.top = (elementPos.y + 10) + 'px'
+        document.body.appendChild(tooltip);
+
+        setTimeout(() => {
+            tooltip.remove()
+        }, 4000)
+    } catch (error) {
+        console.error(error)
+    }
 
 })
 
+//const current = socket("http://192.168.86.27:3000")
 const current = socket()
 current.on('connect', () => {
     app.ports.connect.send(null)
@@ -99,19 +105,24 @@ app.ports.notea.subscribe((_) => {
     current.emit("notea")
 })
 app.ports.notify.subscribe((info) => {
-    if ("Notification" in window) {
-        if (askNotification && Notification.permission != "granted") {
-            Notification.requestPermission((_permission) => {})
-            askNotification = false;
-        }
-        var notification = new Notification(info.message, {
-            icon: "/img/logo.png"
-        })
-        if (info.onclick) {
-            notification.onclick = function () {
-                app.ports.notificatinClicked.send(null)
-                notification.close()
+    try {
+
+        if ("Notification" in window) {
+            if (askNotification && Notification.permission != "granted") {
+                Notification.requestPermission((_permission) => {})
+                askNotification = false;
+            }
+            var notification = new Notification(info.message, {
+                icon: "/img/logo.png"
+            })
+            if (info.onclick) {
+                notification.onclick = function () {
+                    app.ports.notificatinClicked.send(null)
+                    notification.close()
+                }
             }
         }
+    } catch (error) {
+        console.error(error)
     }
 })

@@ -12,7 +12,7 @@ const autoprefixer = require('autoprefixer')
 const TARGET_ENV =
   process.env.npm_lifecycle_event === 'build' ? 'production' : 'development'
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3010
 
 const common = {
   entry: {

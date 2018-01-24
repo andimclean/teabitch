@@ -6,6 +6,7 @@ import Element.Attributes exposing (..)
 import Element.Input as Input
 import Element.Events exposing (..)
 import Html
+import Json.Decode as Json
 import Navigation exposing (..)
 import Style exposing (..)
 import Style.Border as Border
@@ -13,10 +14,8 @@ import Style.Color as Color
 import Style.Font as Font
 import Time exposing (..)
 import UrlParser exposing (..)
+import Window exposing (resizes)
 
--- Configuration
-websiteAddress: String
-websiteAddress = "http://192.168.86.27:3000/"
 
 -- Helpers
 
@@ -97,6 +96,8 @@ type alias Model =
     , inRound : Bool
     , teaFor: People
     , teamaker: Maybe Person
+    , host : String
+    , screenSize : ScreenSize
     }
 
 type State 
@@ -134,15 +135,31 @@ init location =
       route = parseLocation location
       room = getRoomName route
       name = getMemberName route
+      host = location.protocol ++ "//" ++ location.host ++ "/"
     in
         
-    ( Model Nothing [] [] Nothing name room NotConnected 0 False [] Nothing
+    ( Model Nothing [] [] Nothing name room NotConnected 0 False [] Nothing host Desktop
     , Cmd.none
     )
 
 
 -- UPDATE
+type ScreenSize
+    = Phone
+    | Tablet
+    | Desktop
+    | BigDesktop
 
+getScreenSize : Window.Size -> ScreenSize
+getScreenSize size =
+    if size.width <= 600 then
+        Phone
+    else if size.width <= 1200 then
+        Tablet
+    else if size.width <= 1800 then
+        Desktop
+    else
+        BigDesktop
 
 type Msg
     = NoOp
@@ -163,6 +180,8 @@ type Msg
     | RoundComplete RoundCompleteArgs
     | Tick Time
     | OnLocationChange Navigation.Location
+    | SetScreenSize Window.Size
+    | KeyPressed Int
 
 canJoin : { a | name : String, room : String } -> Bool
 canJoin model = 
@@ -181,7 +200,8 @@ update msg model =
             room = getRoomName route
             name = getMemberName route
             me = {name = name, id = ""}
-            newModel = {model | room = room , name = name, me = Just me }
+            host = location.protocol ++ "//" ++ location.host ++ "/"
+            newModel = {model | room = room , name = name, me = Just me , host = host}
             cmd = 
             if canJoin newModel then
               join {roomname = model.room, membername = model.name}
@@ -260,6 +280,17 @@ update msg model =
             (newModel, Cmd.none)
         NotificatinClicked _ ->
           ( model, wantTea () )
+        SetScreenSize size ->
+          ({ model | screenSize = getScreenSize size } , Cmd.none)
+        KeyPressed key ->
+          let
+              cmd = if (key == 13 && canJoin model) then
+                  Navigation.newUrl <| "/"++ model.room ++ "/"++ model.name
+                else
+                  Cmd.none
+          in
+              
+            ( model, cmd )
 
 -- VIEW
 
@@ -274,6 +305,8 @@ type Styles
     | Button
     | MaterialFont
     | PersonStyle
+    | H1
+    | H2
 
 materialFont: List Font
 materialFont = 
@@ -326,6 +359,16 @@ stylesheet =
             , Border.solid
             , Color.border Color.darkGray
             ]
+        , style H2
+           [
+              Font.typeface sansSerif
+            , Font.size 20
+           ]
+        , style H1
+           [
+              Font.typeface sansSerif
+            , Font.size 24
+           ]
         , style DisabledButton
             [ Border.rounded 5
             , Border.all 0
@@ -358,15 +401,19 @@ stylesheet =
           ]        
         ]
 
+
+onKeyUp tagger =
+    on "keyup" (Json.map tagger keyCode)
+
 view : Model -> Html.Html Msg
 view model =
     Element.layout stylesheet <|
         column None
-            [ height (percent 100) ]
+            [ height (percent 100) , width (percent 100) ]
             [ navigation model
-            , el None [ center, width (px 800), height (percent 100)] <|
-              column Main 
-                [spacing 30, paddingTop 50, paddingBottom 50, height (percent 100)]
+            , el None [ center , width (percent 100) ] <|
+              column None 
+                [spacing 30, paddingTop 50, paddingBottom 50, height (percent 100), width (percent 100)]
                 ( List.concat [mainView model])
             ]
 
@@ -386,7 +433,7 @@ showShare model =
   case model.state of
     Joined -> 
       button None 
-        [Element.Attributes.class "copy-button" , Element.Attributes.attribute "data-clipboard-text" (toString (websiteAddress ++ model.room))]
+        [Element.Attributes.class "copy-button" , Element.Attributes.attribute "data-clipboard-text" (toString (model.host ++ model.room))]
         (el NavOption [] (text "Share Room"))
     _ -> empty
         
@@ -406,39 +453,69 @@ mainView model =
                 ]
             ]
         PreJoined ->
-            [el None [center, width (px 400)] <|
-              column None
-               [spacing 20]
-               [Input.text Field 
-                    [padding 10]
-                    { onChange = ChangeName
-                    , value = model.name
-                    , label =
-                      Input.placeholder
-                        { label = Input.labelAbove (el None [verticalCenter] (text "Name"))
-                        , text = "Name"
-                        }
-                    , options = []
-                    }
-                ,Input.text Field 
-                    [padding 10 ]
-                    { onChange = ChangeRoom
-                    , value = model.room
-                    , label =
-                      Input.placeholder
-                        { label = Input.labelAbove (el None [verticalCenter] (text "Room"))
-                        , text = "Room"
-                        }
-                    , options = []
-                    }
-                , Element.button (chooseOne (canJoin model) Button DisabledButton)
-                    [ padding 10,  onClick (chooseOne (canJoin model) JoinRoom NoOp)]
-                      (el None [] (text "Join"))
-                    
-                    
-               ]
+            [el None [center] <|
+              row None
+                [verticalSpread]
+                [(login model)
+                , (blurb)]
             ]
         Joined -> waterMe model
+
+blurb : Element Styles variation msg
+blurb = 
+    column None
+    [paddingLeft 30,  spacing 20]
+    [
+      Element.h1 H1 [] (bold "Who's tea round is it?")
+    , Element.paragraph None [] [(text "Have you ever worked in an office where everyone is suppose to take turns in making the drinks?")]
+    , Element.paragraph None [] [(text "Are you scared seeing if anyone else wants a drink as it'll mean you will have to make everyone drinks again? So you don't ask and slowly dehydrate")]
+    , Element.h2 H2 [] (bold "Then Tea Round is for you.")
+    , Element.paragraph None []
+          [(text "Just login with your name and a unique name for the room. Then click on ")
+          , (bold "Share")
+          , (text " In the top right corner, which will copy your room's address to the clipboard, you can then paste this to the rest of your office workers (Vie email, Snapchat, Skype etc)")]
+    , Element.paragraph None [] [(text "When it's time for a drink, just Hit")
+      , (bold " Time for tea ")
+      , (text "and everyone in the room will be notified it's time for a drink. ")
+      , (text "Everyone who wants a drink clicks ")
+      , (bold " Time for tea ")
+      , (text "Once the timer reaches zero, One of the people who want tea will be randomal selected to go make it.")
+      ]
+    , Element.paragraph None [] [(text "This is a public server with no actual logins. So make your room name random.")]
+    ]
+
+
+login : { a | name : String, room : String } -> Element Styles variation Msg
+login model = 
+    column None
+    [spacing 20]
+    [Input.text Field 
+        [padding 10, onKeyUp KeyPressed]
+        { onChange = ChangeName
+        , value = model.name
+        , label =
+            Input.placeholder
+            { label = Input.labelAbove (el None [verticalCenter] (text "Name"))
+            , text = "Name"
+            }
+        , options = []
+        }
+    ,Input.text Field 
+        [padding 10 , onKeyUp KeyPressed]
+        { onChange = ChangeRoom
+        , value = model.room
+        , label =
+            Input.placeholder
+            { label = Input.labelAbove (el None [verticalCenter] (text "Room"))
+            , text = "Room"
+            }
+        , options = []
+        }
+    , Element.button (chooseOne (canJoin model) Button DisabledButton)
+        [ padding 10,  onClick (chooseOne (canJoin model) JoinRoom NoOp)]
+            (el None [] (text "Join"))
+    ]
+
 
 showTimer : Int -> Element Styles variation msg
 showTimer timeleft =
@@ -451,7 +528,7 @@ showTimer timeleft =
 waterMe: Model -> List (Element Styles variation Msg)
 waterMe model = 
     [ grid None
-        [ spacing 20, height (percent 100)]
+        [ spacing 20, height (percent 100), width (percent 100)]
         { columns = [ percent 20 , fill]
         , rows = 
             [ px 40 
@@ -486,7 +563,7 @@ waterMe model =
                 { start  = ( 0, 1)
                 , width  =1
                 , height = 1
-                , content = (showPeople model)
+                , content = (showPeople model.peopleInRound model.peopleInRoom)
                 }
             , cell
                 { start = (0,2)
@@ -514,16 +591,18 @@ getId maybePerson =
         Just person -> person.id            
         Nothing -> ""
             
-callToAction : Model -> Element Styles variation Msg
+callToAction : { a | inRound : Bool } -> Element Styles variation Msg
 callToAction model = 
     let
       choose = chooseOne (model.inRound)
     in        
       Element.button (choose DisabledButton Button)
         [onClick (choose NoThanks WaterMe), height (percent 100)]
-        (el None [] (text ( choose "No Thanks" "Water me")))
+        (el None [] (text ( choose "I don't want tea" "Time for tea")))
 
-showRound: Model -> Element Styles variation msg
+showRound
+    : { a | teaFor : List Person, teamaker : Maybe Person }
+    -> Element Styles variation msg
 showRound model = 
     let
         makerElement = 
@@ -550,11 +629,11 @@ showPersonName: Person -> Element Styles variation msg
 showPersonName person = 
     el PersonStyle [paddingLeft 5, paddingRight 5, width (px 100), height (px 20)] (text (.name person))
 
-showPeople: Model -> Element Styles variation msg
-showPeople model = 
+showPeople: People -> People -> Element Styles variation msg
+showPeople peopleInRound peopleInRoom = 
     column None
       []
-      ( List.map (showPerson model.peopleInRound) model.peopleInRoom )
+      ( List.map (showPerson peopleInRound) peopleInRoom )
 
 showPerson: People -> Person ->  Element Styles variation msg
 showPerson people person =
@@ -578,6 +657,7 @@ subscriptions model =
     , disconnect DisConnect
     , notificatinClicked NotificatinClicked
     , every second Tick
+    , Window.resizes SetScreenSize
     ]
 
 main : Program Never Model Msg
