@@ -28,14 +28,14 @@ app.use(sassMiddleware({
   indentedSyntax: true, // true = .sass and false = .scss
   sourceMap: true
 }));
-app.use(express.static(path.join(__dirname, '..', 'gui-elm', 'dist')));
+app.use(express.static(path.join(__dirname, '..', 'dist')));
 
 app.get('/:room', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '..',  'dist', 'index.html'));
 });
 
 app.get('/:room/:user', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '..',  'dist', 'index.html'));
 });
 
 // catch 404 and forward to error handler

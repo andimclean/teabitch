@@ -20,7 +20,7 @@ const common = {
   },
 
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, '..','dist'),
     filename: '[name].js',
     publicPath :'/'
   },
@@ -74,7 +74,7 @@ const common = {
   },
 
   plugins: [
-    new CleanWebpackPlugin(['dist']),
+    new CleanWebpackPlugin(['../dist']),
 
     new HtmlWebpackPlugin({
       title: 'teaBitch',
@@ -138,7 +138,7 @@ if (TARGET_ENV === 'production') {
   console.log('=== Building for production')
   module.exports = merge(common, {
     output: {
-      path: path.resolve(__dirname, 'dist'),
+      path: path.resolve(__dirname, '..', 'dist'),
       filename: '[name]-[hash].js',
     },
     plugins: [
