@@ -1,6 +1,8 @@
 backend/node_modules
+dist
 gui-elm/node_modules
 gui-elm/elm-stuff
 gui-elm/dist
+gui-polymer/build
 gui-polymer/node_modules
 gui-polymer/bower_components
