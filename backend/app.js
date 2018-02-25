@@ -30,12 +30,12 @@ app.use(sassMiddleware({
 }));
 app.use(express.static(path.join(__dirname, '..', 'dist')));
 
-app.get('/:room', (req, res) => {
-  res.sendFile(path.join(__dirname, '..',  'dist', 'index.html'));
+app.get('/:version/:room', (req, res) => {
+  res.sendFile(path.join(__dirname, '..',  'dist', req.params.version, 'index.html'));
 });
 
-app.get('/:room/:user', (req, res) => {
-  res.sendFile(path.join(__dirname, '..',  'dist', 'index.html'));
+app.get('/:version/:room/:user', (req, res) => {
+  res.sendFile(path.join(__dirname, '..',  'dist', req.params.version,'index.html'));
 });
 
 // catch 404 and forward to error handler
