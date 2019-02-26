@@ -6,3 +6,4 @@ gui-elm/dist
 gui-polymer/build
 gui-polymer/node_modules
 gui-polymer/bower_components
+gui-polymer/polymer
