@@ -1,8 +1,0 @@
-{
-  "name": "tearound",
-  "description": "Frontend for the tearound service",
-  "main": "index.html",
-  "dependencies": {
-    "iron-socket-io-client": "Collaborne/iron-socket-io-client#^2.2.0"
-  }
-}
