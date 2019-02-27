@@ -32,7 +32,8 @@ app.use(sassMiddleware({
 }));
 app.use(express.static(path.join(__dirname, '..', 'dist')));
 
-const isDirectory = source => fs.lstatSync(source).isDirectory();
+const isDirectory = source => fs.existsSync(source) && fs.lstatSync(source).isDirectory();
+const isFile = source => fs.existsSync(source) && fs.lstatSync(source).isFile();
 const getDirectories = source => fs.readdirSync(source).map(name => join(source, name)).filter(isDirectory)
 
 app.get('/frameworks', (req, res) => {
@@ -44,12 +45,26 @@ app.get('/frameworks', (req, res) => {
   );
 });
 
-app.get('/:version/:room', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'dist', req.params.version, 'index.html'));
+function sendFile(res, file) {
+  if (isFile(path.join(file, 'index.html'))) {
+    res.sendFile(path.join(file, 'index.html'));
+  } else {
+    res.sendFile(path.join(file, 'index.js'));
+  }
+
+}
+
+app.get('/:version', (req, res) => {
+  sendFile(res, path.join(__dirname, '..', 'dist', req.params.version));
 });
 
+app.get('/:version/:room', (req, res) => {
+  sendFile(res, path.join(__dirname, '..', 'dist', req.params.version));
+});
+
+
 app.get('/:version/:room/:user', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'dist', req.params.version, 'index.html'));
+  sendFile(res, path.join(__dirname, '..', 'dist', req.params.version));
 });
 
 app.get('*', (req, res) => {

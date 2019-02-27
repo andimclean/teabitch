@@ -1,7 +1,8 @@
-<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
-
-<dom-module id='tearound-tickbox'>
-  <template>
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+class TearoundTickbox extends PolymerElement {
+  static get template() {
+    return html`
     <style>
       :host {
         width: 24px;
@@ -33,24 +34,21 @@
     <template is="dom-if" if="[[!ticked]]">
       <i class="material-icons">check_box_outline_blank</i>
     </template>
-  </template>
+`;
+  }
 
-  <script>
-    class TearoundTickbox extends Polymer.Element {
-      static get is() {
-        return 'tearound-tickbox'
-      }
-      static get properties() {
-        return {
-          ticked: {
-            type: Boolean,
-            value: true,
-            reflectToAttribute: true,
-            notify: true
-          }
-        }
+  static get is() {
+    return 'tearound-tickbox'
+  }
+  static get properties() {
+    return {
+      ticked: {
+        type: Boolean,
+        value: true,
+        reflectToAttribute: true,
+        notify: true
       }
     }
-    window.customElements.define(TearoundTickbox.is, TearoundTickbox);
-  </script>
-</dom-module>
+  }
+}
+window.customElements.define(TearoundTickbox.is, TearoundTickbox);

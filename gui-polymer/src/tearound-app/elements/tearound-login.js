@@ -1,9 +1,10 @@
-<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
-<link rel='import' href='../../../bower_components/paper-input/paper-input.html'>
-<link rel='import' href='../../../bower_components/paper-button/paper-button.html'>
-
-<dom-module id='tearound-login'>
-  <template>
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-button/paper-button.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+class Tearoun_Login extends PolymerElement {
+  static get template() {
+    return html`
     <style>
       .loginbox {
         vertical-align: top;
@@ -35,7 +36,7 @@
     <div class="loginbox">
       <paper-input value="{{room}}" label="Room Name"></paper-input>
       <paper-input value="{{name}}" label="Your Name"></paper-input>
-      <paper-button disabled$="{{_disabled}}" on-tap="_join">Join Room</paper-button>
+      <paper-button disabled\$="{{_disabled}}" on-tap="_join">Join Room</paper-button>
     </div>
     <div class="blurb">
       <h1 class="bold">Who's tea round is it? </h1>
@@ -54,46 +55,42 @@
 
       <p>This is a public server with no actual logins. So make your room name random.</p>
     </div>
+`;
+  }
 
-  </template>
-
-  <script>
-    class Tearoun_Login extends Polymer.Element {
-      static get is() {
-        return 'tearound-login'
-      }
-      static get properties() {
-        return {
-          name: {
-            type: String,
-            observer: "checkDisabled"
-          },
-          room: {
-            type: String,
-            observer: "checkDisabled"
-          },
-          version: String,
-          _disabled: Boolean
-        }
-      }
-
-      checkDisabled() {
-        this._disabled = !(this.name && this.room)
-      }
-
-      _activeChanged(newValue, oldValue) {
-        console.log("Valuechanged from ", oldValue, "to", newValue)
-      }
-      _join() {
-        this.dispatchEvent(new CustomEvent("joinroom", {
-          detail: {
-            version: this.version,
-            roomname: this.room,
-            membername: this.name
-          }
-        }))
-      }
+  static get is() {
+    return 'tearound-login'
+  }
+  static get properties() {
+    return {
+      name: {
+        type: String,
+        observer: "checkDisabled"
+      },
+      room: {
+        type: String,
+        observer: "checkDisabled"
+      },
+      version: String,
+      _disabled: Boolean
     }
-    window.customElements.define(Tearoun_Login.is, Tearoun_Login);
-  </script>
-</dom-module>
+  }
+
+  checkDisabled() {
+    this._disabled = !(this.name && this.room)
+  }
+
+  _activeChanged(newValue, oldValue) {
+    console.log("Valuechanged from ", oldValue, "to", newValue)
+  }
+  _join() {
+    this.dispatchEvent(new CustomEvent("joinroom", {
+      detail: {
+        version: this.version,
+        roomname: this.room,
+        membername: this.name
+      }
+    }))
+  }
+}
+window.customElements.define(Tearoun_Login.is, Tearoun_Login);

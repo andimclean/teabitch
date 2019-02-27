@@ -1,4 +1,4 @@
-<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<script type="module" src="../../../../@polymer/polymer/polymer-element.js"></script>
 
 <dom-module id='tearound-connecting'>
     <template>
@@ -7,13 +7,14 @@
        <slot></slot>
     </template>
 
-    <script>
-        class TearoundConnecting extends Polymer.Element {
-           static get is() {return 'tearound-connecting'}
-           static get properties() {
-             return {}
-           }
-         }
-         window.customElements.define(TearoundConnecting .is, TearoundConnecting);
-    </script>
+    <script type="module">
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+class TearoundConnecting extends PolymerElement {
+   static get is() {return 'tearound-connecting'}
+   static get properties() {
+     return {}
+   }
+ }
+window.customElements.define(TearoundConnecting .is, TearoundConnecting);
+</script>
 </dom-module>
