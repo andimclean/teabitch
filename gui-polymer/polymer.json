@@ -1,0 +1,22 @@
+{
+  "entrypoint": "index.html",
+  "builds": [{
+    "name": "default",
+    "bundle": false,
+    "js": {
+      "minify": true,
+      "compile": true
+    },
+    "css": {
+      "minify": true
+    },
+    "html": {
+      "minify": true
+    }
+  }],
+  "lint": {
+    "rules": [
+      "polymer-2"
+    ]
+  }
+}

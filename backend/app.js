@@ -6,10 +6,10 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var sassMiddleware = require('node-sass-middleware');
 var moment = require('moment');
-
-var index = require('./routes/index');
-var users = require('./routes/users');
-
+var fs = require('fs');
+const {
+  join
+} = require('path')
 var app = express();
 
 // view engine setup
@@ -17,10 +17,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 // uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(cookieParser());
 app.use(sassMiddleware({
   src: path.join(__dirname, 'public'),
@@ -28,25 +30,55 @@ app.use(sassMiddleware({
   indentedSyntax: true, // true = .sass and false = .scss
   sourceMap: true
 }));
-app.use(express.static(path.join(__dirname, '..', 'gui-elm', 'dist')));
+app.use(express.static(path.join(__dirname, '..', 'dist')));
 
-app.get('/:room', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+const isDirectory = source => fs.existsSync(source) && fs.lstatSync(source).isDirectory();
+const isFile = source => fs.existsSync(source) && fs.lstatSync(source).isFile();
+const getDirectories = source => fs.readdirSync(source).map(name => join(source, name)).filter(isDirectory)
+
+app.get('/frameworks', (req, res) => {
+  res.send(
+    getDirectories(path.join(__dirname, '..', 'dist')).map(file => {
+      const names = file.split('/');
+      return names[names.length - 1];
+    })
+  );
 });
 
-app.get('/:room/:user', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+function sendFile(res, file) {
+  if (isFile(path.join(file, 'index.html'))) {
+    res.sendFile(path.join(file, 'index.html'));
+  } else {
+    res.sendFile(path.join(file, 'index.js'));
+  }
+
+}
+
+app.get('/:version', (req, res) => {
+  sendFile(res, path.join(__dirname, '..', 'dist', req.params.version));
 });
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+app.get('/:version/:room', (req, res) => {
+  sendFile(res, path.join(__dirname, '..', 'dist', req.params.version));
 });
+
+
+app.get('/:version/:room/:user', (req, res) => {
+  sendFile(res, path.join(__dirname, '..', 'dist', req.params.version));
+});
+
+app.get('*', (req, res) => {
+  const directories = getDirectories(path.join(__dirname, '..', 'dist')).map(file => {
+    const names = file.split('/');
+    return names[names.length - 1];
+  })
+  const url = '/' + directories[0];
+  res.redirect(url);
+});
+
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -58,7 +90,10 @@ app.use(function(err, req, res, next) {
 
 var tearooms = {};
 getid = () => `${(Math.random() * 100000000)}`;
-mapmember = (m) => (m ? {id: m.teaid, name: m.membername} : null);
+mapmember = (m) => (m ? {
+  id: m.teaid,
+  name: m.membername
+} : null);
 
 function findOrCreateTearoom(name, io) {
   if (!tearooms[name]) {
@@ -77,17 +112,26 @@ function findOrCreateTearoom(name, io) {
 
 
 function addMemberToTearoom(tearoom, socket) {
-  if (!socket.teaid) { socket.teaid = getid(); }
+  if (!socket.teaid) {
+    socket.teaid = getid();
+  }
 
   tearoom.members.add(socket);
   socket.join(tearoom.name);
 
   socket.emit('yourid', mapmember(socket));
-  tearoom.broadcast().emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
+  tearoom.broadcast().emit('joined', {
+    members: [...tearoom.members.values()].map(mapmember)
+  });
 
   if (tearoom.roundendsat) {
-    tearoom.broadcast().emit('roundstarted', {timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
-    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('roundstarted', {
+      timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)
+    })
+    tearoom.broadcast().emit('inround', {
+      wantingtea: [...tearoom.wantingtea.values()].map(mapmember),
+      timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)
+    })
   }
 }
 
@@ -100,7 +144,9 @@ function startTearoomRound(tearoom) {
       endtime: endtime
     };
 
-    tearoom.broadcast().emit('roundstarted', {timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('roundstarted', {
+      timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)
+    })
   }
 }
 
@@ -121,7 +167,10 @@ function getEndRoundHandler(tearoom) {
     var teafor = [...tearoom.wantingtea].filter(m => m != teamaker).map(mapmember);
 
     // tell the room who's making tea
-    tearoom.broadcast().emit('roundcomplete', {teamaker: mapmember(teamaker), teafor: teafor});
+    tearoom.broadcast().emit('roundcomplete', {
+      teamaker: mapmember(teamaker),
+      teafor: teafor
+    });
 
     tearoom.roundendsat = null;
     tearoom.wantingtea.clear();
@@ -132,21 +181,29 @@ function addToTearound(tearoom, member) {
   if (tearoom && tearoom.roundendsat && tearoom.members.has(member)) {
     tearoom.wantingtea.add(member);
 
-    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('inround', {
+      wantingtea: [...tearoom.wantingtea.values()].map(mapmember),
+      timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)
+    })
   }
 }
 
 function removeFromTeaRound(tearoom, member) {
   if (tearoom && member && tearoom.wantingtea.has(member)) {
     tearoom.wantingtea.delete(member);
-    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('inround', {
+      wantingtea: [...tearoom.wantingtea.values()].map(mapmember),
+      timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)
+    })
   }
 }
 
 function removeMemberFromTearoom(tearoom, member) {
   if (tearoom && member) {
     tearoom.members.delete(member);
-    tearoom.broadcast().emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
+    tearoom.broadcast().emit('joined', {
+      members: [...tearoom.members.values()].map(mapmember)
+    });
   }
 }
 
@@ -159,7 +216,9 @@ app.socket = (io) => {
     socket.membername = null;
 
     socket.on('join', (data) => {
-      if (tearoom) { removeMemberFromTearoom(tearoom, socket); }
+      if (tearoom) {
+        removeMemberFromTearoom(tearoom, socket);
+      }
 
       tearoom = findOrCreateTearoom(data.roomname, io);
       socket.membername = data.membername;

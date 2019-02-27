@@ -1,0 +1,7 @@
+{
+  "name": "tearound",
+  "short_name": "tearound",
+  "description": "Frontend for the tearound service",
+  "start_url": "/",
+  "display": "standalone"
+}
