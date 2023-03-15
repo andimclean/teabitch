@@ -568,13 +568,23 @@ view model =
         ]
 
 
+isLoggedin : Model -> a -> a -> a
+isLoggedin model loggedin loggedout =
+    case model.state of
+        Joined ->
+            loggedin
+
+        _ ->
+            loggedout
+
+
 navigation : Model -> Html Msg
 navigation model =
     Navbar.config NavMsg
         |> Navbar.withAnimation
         |> Navbar.container
-        |> Navbar.brand [ href "#" ] [ img [ src "/img/logo.png" ] [ text "Tea Round" ] ]
-        |> Navbar.customItems [ showShare model ]
+        |> Navbar.brand [ href "#" ] [ img [ src "/img/logo.png", style "width" "60px", style "width" "60px" ] [ text "Tea Round" ] ]
+        |> Navbar.customItems [ isLoggedin model (showShare model) (Navbar.customItem (login model)) ]
         |> Navbar.view model.navState
 
 
@@ -585,13 +595,15 @@ navigation model =
 showShare model =
     case model.state of
         Joined ->
-            Navbar.textItem []
-                --  "data-clipboard-text" (string (model.host ++ model.room)) ]
+            Navbar.textItem
+                [ attribute "data-clipboard-text" (model.host ++ model.room)
+                ]
                 [ text "Share Room" ]
 
         _ ->
-            Navbar.textItem []
-                --  "data-clipboard-text" (string (model.host ++ model.room)) ]
+            Navbar.textItem
+                [ attribute "data-clipboard-text" (model.host ++ model.room)
+                ]
                 [ text "" ]
 
 
@@ -614,8 +626,7 @@ mainView model =
             Grid.container []
                 [ Grid.row []
                     [ Grid.col []
-                        [ login model
-                        , blurb
+                        [ blurb
                         ]
                     ]
                 ]
@@ -659,6 +670,14 @@ login model =
         [ Grid.row []
             [ Grid.col []
                 [ Input.text
+                    [ Input.id "room"
+                    , Input.onInput ChangeRoom
+                    , Input.value model.room
+                    , Input.placeholder "Room"
+                    ]
+                ]
+            , Grid.col []
+                [ Input.text
                     [ Input.id "name"
                     , Input.onInput ChangeName
                     , Input.value model.name
@@ -666,16 +685,6 @@ login model =
                     ]
                 ]
             , Grid.col []
-                [ Input.text 
-                    [ Input.id "room"
-                    , Input.onInput ChangeRoom
-                    , Input.value model.room
-                    , Input.placeholder "Room"
-                    ]
-                ]
-            ]
-        , Grid.row []
-            [ Grid.col []
                 [ chooseOne (canJoin model)
                     Button.button
                     disabledButton
@@ -836,6 +845,7 @@ subscriptions model =
         , notificatinClicked NotificatinClicked
         , Time.every 1000 Tick
         , Events.onResize SetScreenSize
+        , Navbar.subscriptions model.navState NavMsg
         ]
 
 

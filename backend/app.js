@@ -31,11 +31,23 @@ app.use(sassMiddleware({
 app.use(express.static(path.join(__dirname, '..', 'gui-elm', 'dist')));
 
 app.get('/:room', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+  const room = req.params.room;
+  if (room.substring(room.length - 4) === '.css') {
+    res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', room));
+  } else {
+    res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+  }
 });
 
 app.get('/:room/:user', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+  console.log("/:room/:user", req.params);
+  const user = req.params.user;
+
+  if (user.substring(user.length - 3) === '.js' || user.substring(user.length - 4) === '.css') {
+    res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', user));
+  } else {
+    res.sendFile(path.join(__dirname, '..', 'gui-elm', 'dist', 'index.html'));
+  }
 });
 
 // catch 404 and forward to error handler
