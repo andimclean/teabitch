@@ -1,13 +1,13 @@
-require('./css/index.scss')
-const Clipboard = require('clipboard')
+require('./assets/css/index.scss');
+const Clipboard = require('clipboard');
 
-const socket = require('socket.io-client')
+const socket = require('socket.io-client');
 
-const Elm = require('./Main.elm')
+const Elm = require('./Main.elm');
 
-const app = Elm.Main.embed(document.getElementById('main'))
+const app = Elm.Elm.Main.init();
 
-var askNotification = true
+var askNotification = true;
 
 function getPosition(el) {
     var xPos = 0;
@@ -38,91 +38,103 @@ function getPosition(el) {
 var clipboard = new Clipboard('.copy-button', {
     text: function (trigger) {
         var s = trigger.getAttribute("data-clipboard-text");
-        var t = s.substring(1, s.length - 1)
+        var t = s.substring(1, s.length - 1);
         return t;
     }
-})
+});
 clipboard.on('success', (e) => {
     try {
 
-        var element = e.trigger
-        var elementPos = getPosition(element)
-        var tooltip = document.createElement("div")
-        tooltip.classList = "tooltip"
+        var element = e.trigger;
+        var elementPos = getPosition(element);
+        var tooltip = document.createElement("div");
+        tooltip.classList = "tooltip";
         tooltip.innerText = "Copied to clipboard";
-        tooltip.style.position = "fixed"
-        tooltip.style.left = (elementPos.x + 10) + 'px'
-        tooltip.style.top = (elementPos.y + 10) + 'px'
+        tooltip.style.position = "fixed";
+        tooltip.style.left = (elementPos.x + 10) + 'px';
+        tooltip.style.top = (elementPos.y + 10) + 'px';
         document.body.appendChild(tooltip);
 
         setTimeout(() => {
-            tooltip.remove()
-        }, 4000)
+            tooltip.remove();
+        }, 4000);
     } catch (error) {
-        console.error(error)
+        console.error(error);
     }
 
-})
+});
 
 //const current = socket("http://192.168.86.27:3000")
-const current = socket()
+const current = socket('', { jsonp: false, transports: ['websocket'] });
+
 current.on('connect', () => {
-    app.ports.connect.send(null)
-})
+    console.log("Connected", current.id);
+    app.ports.connect.send(null);
+});
+
+current.on('connect_error', (error) => {
+    console.log("Connection error", error);
+});
 current.on('joined', (data) => {
-    app.ports.joined.send(data.members)
-})
+    console.log("Joined");
+    app.ports.joined.send(data.members);
+});
 
 current.on('yourid', (data) => {
-    app.ports.yourid.send(data)
-})
+    console.log("Yourid");
+    app.ports.yourid.send(data);
+});
 
 current.on('roundstarted', (data) => {
-    app.ports.roundstarted.send(data)
-})
+    console.log("roundstarted");
+    app.ports.roundstarted.send(data);
+});
 
 current.on('inround', (data) => {
-    app.ports.wantingtea.send(data)
-})
+    console.log("inround");
+    app.ports.wantingtea.send(data);
+});
 
 current.on('roundcomplete', (data) => {
-    app.ports.roundcomplete.send(data)
-})
+    console.log("RoundComplete");
+    app.ports.roundcomplete.send(data);
+});
 
 current.on('reconnecting', () => {
-    app.ports.disconnect.send(null)
-})
+    console.log("Reconnecting");
+    app.ports.disconnect.send(null);
+});
 
 app.ports.join.subscribe((person) => {
-    current.emit("join", person)
-})
+    current.emit("join", person);
+});
 
 app.ports.wantTea.subscribe((_) => {
-    current.emit("wanttea")
-})
+    current.emit("wanttea");
+});
 
 app.ports.notea.subscribe((_) => {
-    current.emit("notea")
-})
+    current.emit("notea");
+});
 app.ports.notify.subscribe((info) => {
     try {
 
         if ("Notification" in window) {
             if (askNotification && Notification.permission != "granted") {
-                Notification.requestPermission((_permission) => {})
+                Notification.requestPermission((_permission) => { });
                 askNotification = false;
             }
             var notification = new Notification(info.message, {
                 icon: "/img/logo.png"
-            })
+            });
             if (info.onclick) {
                 notification.onclick = function () {
-                    app.ports.notificatinClicked.send(null)
-                    notification.close()
-                }
+                    app.ports.notificatinClicked.send(null);
+                    notification.close();
+                };
             }
         }
     } catch (error) {
-        console.error(error)
+        console.error(error);
     }
-})
+});

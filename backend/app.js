@@ -39,14 +39,14 @@ app.get('/:room/:user', (req, res) => {
 });
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -58,7 +58,7 @@ app.use(function(err, req, res, next) {
 
 var tearooms = {};
 getid = () => `${(Math.random() * 100000000)}`;
-mapmember = (m) => (m ? {id: m.teaid, name: m.membername} : null);
+mapmember = (m) => (m ? { id: m.teaid, name: m.membername } : null);
 
 function findOrCreateTearoom(name, io) {
   if (!tearooms[name]) {
@@ -83,11 +83,11 @@ function addMemberToTearoom(tearoom, socket) {
   socket.join(tearoom.name);
 
   socket.emit('yourid', mapmember(socket));
-  tearoom.broadcast().emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
+  tearoom.broadcast().emit('joined', { members: [...tearoom.members.values()].map(mapmember) });
 
   if (tearoom.roundendsat) {
-    tearoom.broadcast().emit('roundstarted', {timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
-    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('roundstarted', { timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime) });
+    tearoom.broadcast().emit('inround', { wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime) });
   }
 }
 
@@ -100,7 +100,7 @@ function startTearoomRound(tearoom) {
       endtime: endtime
     };
 
-    tearoom.broadcast().emit('roundstarted', {timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('roundstarted', { timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime) });
   }
 }
 
@@ -121,37 +121,37 @@ function getEndRoundHandler(tearoom) {
     var teafor = [...tearoom.wantingtea].filter(m => m != teamaker).map(mapmember);
 
     // tell the room who's making tea
-    tearoom.broadcast().emit('roundcomplete', {teamaker: mapmember(teamaker), teafor: teafor});
+    tearoom.broadcast().emit('roundcomplete', { teamaker: mapmember(teamaker), teafor: teafor });
 
     tearoom.roundendsat = null;
     tearoom.wantingtea.clear();
-  }
+  };
 }
 
 function addToTearound(tearoom, member) {
   if (tearoom && tearoom.roundendsat && tearoom.members.has(member)) {
     tearoom.wantingtea.add(member);
 
-    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('inround', { wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime) });
   }
 }
 
 function removeFromTeaRound(tearoom, member) {
   if (tearoom && member && tearoom.wantingtea.has(member)) {
     tearoom.wantingtea.delete(member);
-    tearoom.broadcast().emit('inround', {wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime)})
+    tearoom.broadcast().emit('inround', { wantingtea: [...tearoom.wantingtea.values()].map(mapmember), timeleft: getMillisecondsToTime(tearoom.roundendsat.endtime) });
   }
 }
 
 function removeMemberFromTearoom(tearoom, member) {
   if (tearoom && member) {
     tearoom.members.delete(member);
-    tearoom.broadcast().emit('joined', {members: [...tearoom.members.values()].map(mapmember)});
+    tearoom.broadcast().emit('joined', { members: [...tearoom.members.values()].map(mapmember) });
   }
 }
 
 app.socket = (io) => {
-  io.set('origins', '*:*');
+  // io.set('origins', '*:*');
 
   io.on('connection', (socket) => {
     var tearoom = null;
@@ -184,6 +184,6 @@ app.socket = (io) => {
     console.log('a user connected', socket.id);
   });
   console.log('Doing io things');
-}
+};
 
 module.exports = app;
