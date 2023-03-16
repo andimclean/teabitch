@@ -1,5 +1,5 @@
 backend/node_modules
 gui-elm/node_modules
 gui-elm/elm-stuff
-gui-elm/dist
+gui-elm/dist/*
 gui-elm/elm-upgrade*

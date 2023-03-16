@@ -216,7 +216,7 @@ init flags location key =
             Navbar.initialState NavMsg
     in
     ( Model Nothing [] [] Nothing name room NotConnected 0 False [] Nothing host Desktop navState key
-    , Cmd.none
+    , navCmd
     )
 
 
@@ -278,7 +278,7 @@ canJoin model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case  msg of
         NoOp ->
             ( model, Cmd.none )
 
@@ -560,6 +560,8 @@ empty =
 
 view : Model -> Document Msg
 view model =
+    let _ = Debug.log "view" model
+    in
     Document ""
         [ div []
             [ navigation model
