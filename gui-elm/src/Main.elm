@@ -555,10 +555,6 @@ empty =
 
 view : Model -> Document Msg
 view model =
-    let
-        _ =
-            Debug.log "view" model
-    in
     Document ""
         [ div []
             [ navigation model
