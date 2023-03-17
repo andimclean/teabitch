@@ -5,21 +5,16 @@ import Bootstrap.Card as Card
 import Bootstrap.Card.Block as Block
 import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
-import Bootstrap.Grid.Col as Col
-import Bootstrap.Grid.Row as Row
-import Bootstrap.ListGroup as Listgroup
-import Bootstrap.Modal as Modal
 import Bootstrap.Navbar as Navbar
 import Browser exposing (..)
 import Browser.Events as Events
 import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Json.Decode as Json
 import Time exposing (..)
 import Url
 import Url.Builder as Builder
-import Url.Parser exposing ((</>), Parser, int, map, oneOf, parse, s, string)
+import Url.Parser exposing ((</>), Parser, oneOf, parse, string)
 
 
 
@@ -172,7 +167,7 @@ getRoomName route =
         RoomRoute room ->
             room
 
-        MemberRoute room name ->
+        MemberRoute room _ ->
             room
 
 
@@ -182,15 +177,15 @@ getMemberName route =
         HomeRoute ->
             ""
 
-        RoomRoute room ->
+        RoomRoute _ ->
             ""
 
-        MemberRoute room name ->
+        MemberRoute _ name ->
             name
 
 
 init : () -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
-init flags location key =
+init _ location key =
     let
         route =
             parseLocation location
@@ -232,7 +227,7 @@ type ScreenSize
 
 
 getScreenSize : Int -> Int -> ScreenSize
-getScreenSize width height =
+getScreenSize width _ =
     if width <= 600 then
         Phone
 
@@ -278,7 +273,7 @@ canJoin model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case  msg of
+    case msg of
         NoOp ->
             ( model, Cmd.none )
 
@@ -287,7 +282,7 @@ update msg model =
             , Cmd.none
             )
 
-        NoOp1 val ->
+        NoOp1 _ ->
             ( model, Cmd.none )
 
         OnLocationChange location ->
@@ -387,7 +382,7 @@ update msg model =
         NoThanks ->
             ( { model | inRound = True }, notea () )
 
-        ProcessSocket message ->
+        ProcessSocket _ ->
             ( model, Cmd.none )
 
         RoundStarted info ->
@@ -560,7 +555,9 @@ empty =
 
 view : Model -> Document Msg
 view model =
-    let _ = Debug.log "view" model
+    let
+        _ =
+            Debug.log "view" model
     in
     Document ""
         [ div []
@@ -594,17 +591,18 @@ navigation model =
 -- showShare : Model -> CustomItem Msg
 
 
+showShare : { a | state : State, host : String, room : String } -> Navbar.CustomItem msg
 showShare model =
     case model.state of
         Joined ->
             Navbar.textItem
-                [ attribute "data-clipboard-text" (model.host ++ model.room)
+                [ attribute "data-clipboard-text" (String.append model.host model.room)
                 ]
                 [ text "Share Room" ]
 
         _ ->
             Navbar.textItem
-                [ attribute "data-clipboard-text" (model.host ++ model.room)
+                [ attribute "data-clipboard-text" (String.append model.host model.room)
                 ]
                 [ text "" ]
 
@@ -613,6 +611,7 @@ showShare model =
 -- mainView : Model -> Model -> Html Msg
 
 
+mainView : Model -> Html Msg
 mainView model =
     case model.state of
         NotConnected ->
@@ -687,22 +686,12 @@ login model =
                     ]
                 ]
             , Grid.col []
-                [ chooseOne (canJoin model)
-                    Button.button
-                    disabledButton
-                    [ Button.onClick (chooseOne (canJoin model) JoinRoom NoOp) ]
+                [ Button.button
+                    [ Button.onClick JoinRoom ]
                     [ text "Join" ]
                 ]
             ]
         ]
-
-
-disabledButton attrs =
-    Button.button attrs
-
-
-
--- ++ Button.attrs []"disabled")
 
 
 showTimer : Int -> Html Msg
@@ -719,24 +708,38 @@ waterMe model =
     Grid.container []
         [ Grid.row []
             [ Grid.col []
-                [ text ("Room: " ++ model.room)
-                , showTimer model.timeLeft
+                [ Card.deck
+                    [ Card.config
+                        [ Card.outlineInfo ]
+                        |> Card.headerH3 []
+                            [ text ("Room: " ++ model.room)
+                            , showTimer model.timeLeft
+                            ]
+                        |> Card.block []
+                            [ Block.quote []
+                                [ showPeople
+                                    model.peopleInRound
+                                    model.peopleInRoom
+                                ]
+                            ]
+                    , Card.config
+                        [ Card.outlineInfo ]
+                        |> Card.headerH3 []
+                            [ text ("Member: " ++ model.name) ]
+                        |> Card.block []
+                            [ Block.quote []
+                                [ callToAction model ]
+                            ]
+                    , Card.config
+                        [ Card.outlineInfo ]
+                        |> Card.headerH3 []
+                            [ text ("Tea Made by: " ++ getName model.teamaker) ]
+                        |> Card.block []
+                            [ Block.quote []
+                                [ showRound model ]
+                            ]
+                    ]
                 ]
-            , Grid.col []
-                [ text ("Member: " ++ model.name) ]
-            ]
-        , Grid.row []
-            [ Grid.col []
-                [ showPeople
-                    model.peopleInRound
-                    model.peopleInRoom
-                ]
-            , Grid.col []
-                [ callToAction model ]
-            ]
-        , Grid.row []
-            [ Grid.col []
-                [ showRound model ]
             ]
         ]
 
@@ -772,9 +775,8 @@ callToAction model =
         choose =
             chooseOne model.inRound
     in
-    choose disabledButton
-        Button.button
-        [ Button.onClick (choose NoThanks WaterMe) ]
+    Button.button
+        [ Button.onClick (choose NoThanks WaterMe), Button.large ]
         [ text (choose "I don't want tea" "Time for tea") ]
 
 
@@ -805,6 +807,7 @@ showRound model =
 -- showPersonName : Person -> Element Styles variation msg
 
 
+showPersonName : { a | name : String } -> Html msg
 showPersonName person =
     span [] [ text (.name person) ]
 
@@ -813,6 +816,7 @@ showPersonName person =
 -- showPeople : People -> People -> Element Styles variation msg
 
 
+showPeople : People -> List { a | id : String, name : String } -> Html msg
 showPeople peopleInRound peopleInRoom =
     div
         []
@@ -823,9 +827,10 @@ showPeople peopleInRound peopleInRoom =
 -- showPerson : People -> Person -> Element Styles variation msg
 
 
+showPerson : People -> { a | id : String, name : String } -> Html msg
 showPerson people person =
     div []
-        [ text (chooseOne (isChecked person.id people) "check" "")
+        [ text (chooseOne (isChecked person.id people) (String.fromChar '✔') "")
         , showPersonName person
         ]
 
@@ -855,6 +860,7 @@ subscriptions model =
 -- main : Program Flags Model Msg
 
 
+main : Program () Model Msg
 main =
     Browser.application
         { init = init
